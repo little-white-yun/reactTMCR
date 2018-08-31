@@ -1,0 +1,19 @@
+{
+  "name": "reacttmcr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/little-white-yun/reactTMCR.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/little-white-yun/reactTMCR/issues"
+  },
+  "homepage": "https://github.com/little-white-yun/reactTMCR#readme"
+}
