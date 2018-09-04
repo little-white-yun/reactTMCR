@@ -1,0 +1,7 @@
+.formStyle tr td{
+    padding:10px 0;
+}
+
+.formStyle tr td:nth-child(1) span {
+    margin-right:20px;
+}
