@@ -75,6 +75,7 @@ class Request extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            title:"新 建",
             size: 'large',
             selectedRowKeys: [], // Check here to configure the default column
             loading: true,
@@ -85,28 +86,30 @@ class Request extends React.Component {
                 customerName:'',
                 employeeName:'',
                 ccPoint:'',
-                status:'',
+                status:0,
                 myRequest:1,
                 pageIndex:1,
                 pageSize:1000,
             },
+            deleteInfo:{
+                communicationId:[],
+                delete:0,
+                token:sessionStorage.getItem("token")
+            },
+            editData:[],
             dataInfo:[],
             visible: false    
         }
     }
+    // 模态框打开
     showModal = () => {
         this.setState({
             visible: true,
         });
     }
 
-    handleOk = (e) => {
-        
-        // this.setState({
-        //     visible: false,
-        // });
-    }
-
+   
+    // 模态框关闭
     handleCancel = (e) => {
         console.log(e);
         this.setState({
@@ -125,13 +128,17 @@ class Request extends React.Component {
         }, 1000);
     }
 
+    // 列表复选框的改变事件
     onSelectChange = (selectedRowKeys) => {
-        console.log('selectedRowKeys changed: ', selectedRowKeys);
         this.setState({ selectedRowKeys });
+        var del = this.state.deleteInfo;
+        del.communicationId = selectedRowKeys;
+        console.log(this.state.deleteInfo);
     }
     
     
     componentDidMount(){  
+        console.log(this.state);
         // 获取下拉框
         axios.get(URL.getCrType, {   
             params: {
@@ -151,38 +158,75 @@ class Request extends React.Component {
             })
             console.log(typeData);
         })
-        // { typeCate: "crType", typeId: "2", typeValue: "请面对面拜访", userType: "MC" }
         .catch(function (error) {
             console.log(error);
         })
        
         this.getTable()
 
-        var requestData = this.state.requestData;
+        var requestData = this.state;
         this.onChange = (date, dateString) => {
-            
-            requestData.beginTime = dateString;
-
+            requestData.requestData.beginTime = dateString;
         }
         this.handleChange = (value) => {
-            
-            requestData.ccPoint = value;
-
+            requestData.requestData.ccPoint = value;
         }
         this.stateChange = (value) => {
-            
-            requestData.status = value;
-
+            requestData.requestData.status = value;
         }
         this.endTimeChange = (date, dateString) => {
-            
-            requestData.endTime = dateString;
+            requestData.requestData.endTime = dateString;
+        }
+        this.vauleChange = (e) => {
+            requestData.requestData[e.target.name] = e.target.value;
         }
 
-        this.vauleChange = (e) => {
-            
-            requestData[e.target.name] = e.target.value;
+        // 查询按钮
+        this.queryRequest = (e) => {
+            console.log(this.state.requestData);
+            this.getTable();
         }
+
+        // 删除按钮
+        this.deleteClick = (e) => {
+            requestData.deleteInfo.communicationId = this.state.deleteInfo.communicationId.join(",");
+            axios.get(URL.updateCmcs, {
+                params: this.state.deleteInfo
+            })
+                .then((data) => {
+                    this.setState({
+                        loading: false
+                    })
+                    if (data.data.errorCode == 0) {
+                       alert("操作成功");
+                        this.getTable();
+
+                    } else {
+                        dataList.push("");
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+
+        }
+        // 模态框提交按钮
+        this.modalSubmitClick = (e) => {
+            var editInfo = this.state.editData;
+            editInfo.status = 1;
+            this.submitModal();
+            // this.handleCancel();
+            
+        }
+        // 模态框保存按钮
+        this.modalSaveClick = (e) => {
+            var editInfo = this.state.editData;
+            editInfo.status = 0;
+            // this.handleCancel();
+            this.submitModal();
+        }
+
+        
     }
 
      // 获取列表
@@ -202,7 +246,7 @@ class Request extends React.Component {
                 var dataList = [];
                 data.map(function (item, i) {
                     var info = {};
-                    info.key = i;
+                    info.key = item.communicationId;
                     info.typeValue = item.typeValue;
                     info.customerName = item.customerName;
                     info.employeeName = item.employeeName;
@@ -240,11 +284,41 @@ class Request extends React.Component {
             console.log(error);
         });
     }
+    // 新建/编辑提交事件
+    submitModal = (e) =>{
+        console.log(this.state.editData);
+        axios.post(URL.insertCmcs, {
+            params: this.state.editData
+        })
+        .then((data) => {
+            this.setState({
+                loading: false
+            })
+            if (data.data.errorCode == 0) {
+                alert("操作成功")
+                this.handleCancel();
+                this.getTable();
+
+            } else {
+                dataList.push("");
+            }
+            this.setState({
+                dataInfo: dataList
+            })
+
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    }
     
-    // 查询按钮
-    queryRequest = (e) => {
-        console.log(this.state.requestData);
-        this.getTable();
+    transferMsg(msg) {
+        console.log(222222222);
+        console.log(msg);
+        console.log(this.state);
+        this.setState({
+            editData:msg
+        });
     }
     
 
@@ -307,30 +381,33 @@ class Request extends React.Component {
                 <Col className="gutter-row lineStyle " span={24} >
                 </Col>
                 <Col span={8} offset={17}>
-                        <Button type="primary" className="btnStyle" onClick={this.showModal}>新 建</Button>
-                        <Modal
-                            title="Basic Modal"
-                            visible={this.state.visible}
-                            onOk={this.handleOk}
-                            onCancel={this.handleCancel}
-                            footer={[
-                                // <Button key="back" onClick={this.handleCancel}>Return</Button>,
-                                <Button key="submit" type="primary" onClick={this.handleOk}>
-                                    提交
-                                </Button>,
-                                <Button key="submit1" onClick={this.handleOk}>
-                                   保存
-                                </Button>,
-                            ]}
-                        >
-                            <RequestModel/>
-                                                    
-                        </Modal>
-                        <Button className="btnStyle">编 辑</Button>
-                        <Button type="danger" className="btnStyle">删 除</Button>
+                    <Button type="primary" className="btnStyle" onClick={this.showModal}>新 建</Button>
+                    <Modal
+                        title={this.state.title}
+                        visible={this.state.visible}
+                        onCancel={this.handleCancel}
+                        footer={[
+                            <Button key="submit" type="primary" onClick={this.modalSubmitClick}>
+                                提交
+                            </Button>,
+                            <Button key="submit1" onClick={this.modalSaveClick}>
+                                保存
+                            </Button>,
+                        ]}
+                    >
+                            <RequestModel data={this.state} transferMsg={msg => this.transferMsg(msg)} />
+                                                
+                    </Modal>
+                    <Button className="btnStyle">编 辑</Button>
+                    <Button type="danger" onClick={this.deleteClick} className="btnStyle">删 除</Button>
                 </Col>
                 </Row>
-                <Table rowSelection={rowSelection} columns={columns} pagination={{ pageSize: 10 }} dataSource={this.state.dataInfo} className='tableStyle' scroll={{ y: 240 }}/>
+                <Table rowSelection={rowSelection} 
+                columns={columns} 
+                pagination={{ pageSize: 10 }} 
+                dataSource={this.state.dataInfo} 
+                className='tableStyle' 
+                scroll={{ y: 240 }}/>
                 <Loading title='正在加载...' show={this.state.loading} />
             </div>
         )
