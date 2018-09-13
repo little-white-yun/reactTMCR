@@ -61,7 +61,6 @@ function fromatDate(timestemp) {
     if (s < 10) {
         s = '0' + s;
     }
-    // return y + "-" + m + "-" + d + " " + h + ":" + mm + ":" + s;
     return y + "-" + m + "-" + d;
 }
 
@@ -96,6 +95,7 @@ class Request extends React.Component {
                 delete:0,
                 token:sessionStorage.getItem("token")
             },
+            editAjaxData:[],
             editData:[],
             dataInfo:[],
             visible: false    
@@ -107,7 +107,7 @@ class Request extends React.Component {
             visible: true,
         });
     }
-
+    
    
     // 模态框关闭
     handleCancel = (e) => {
@@ -119,7 +119,6 @@ class Request extends React.Component {
 
     start = () => {
         this.setState({ loading: true });
-        // ajax request after empty completing
         setTimeout(() => {
             this.setState({
                 selectedRowKeys: [],
@@ -215,17 +214,46 @@ class Request extends React.Component {
             var editInfo = this.state.editData;
             editInfo.status = 1;
             this.submitModal();
-            // this.handleCancel();
             
         }
         // 模态框保存按钮
         this.modalSaveClick = (e) => {
             var editInfo = this.state.editData;
             editInfo.status = 0;
-            // this.handleCancel();
             this.submitModal();
+            
+
         }
 
+
+        // 编辑
+        this.showEditModal = (e) =>{
+            if (this.state.deleteInfo.communicationId.length == 0) {
+                alert("请选择一条信息");
+            }else if (this.state.deleteInfo.communicationId.length > 1){
+                alert("只能编辑一条信息");
+            }else {
+                this.setState({
+                    loading: true
+                })
+                requestData.deleteInfo.communicationId = this.state.deleteInfo.communicationId.join(",");
+                axios.get(URL.getCmcs, {
+                    params: {
+                        communicationId: requestData.deleteInfo.communicationId,
+                        token: sessionStorage.getItem("token")
+                    }
+                }).then((data) => {
+                    this.setState({
+                        loading: false,
+                        title: "编 辑",
+                        editAjaxData: data.data.data[0],
+                        visible: true
+                    })
+                    console.log(this.state);
+                })
+            }
+            
+        }
         
     }
 
@@ -286,8 +314,7 @@ class Request extends React.Component {
     }
     // 新建/编辑提交事件
     submitModal = (e) =>{
-        console.log(this.state.editData);
-        axios.post(URL.insertCmcs, {
+        axios.get(URL.insertCmcs, {
             params: this.state.editData
         })
         .then((data) => {
@@ -313,9 +340,6 @@ class Request extends React.Component {
     }
     
     transferMsg(msg) {
-        console.log(222222222);
-        console.log(msg);
-        console.log(this.state);
         this.setState({
             editData:msg
         });
@@ -395,10 +419,10 @@ class Request extends React.Component {
                             </Button>,
                         ]}
                     >
-                            <RequestModel data={this.state} transferMsg={msg => this.transferMsg(msg)} />
+                        <RequestModel data={this.state} transferMsg={msg => this.transferMsg(msg)} />
                                                 
                     </Modal>
-                    <Button className="btnStyle">编 辑</Button>
+                        <Button className="btnStyle" onClick={this.showEditModal}>编 辑</Button>
                     <Button type="danger" onClick={this.deleteClick} className="btnStyle">删 除</Button>
                 </Col>
                 </Row>
