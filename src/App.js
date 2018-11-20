@@ -6,6 +6,7 @@ import 'antd/dist/antd.css';
 import { BrowserRouter as Router, Route, Switch, Redirect, NavLink } from "react-router-dom"
 import Request from "./components/request/Request"
 import CustomerStatus from "./components/customerStatus/CustomerStatus"
+import SetCategory from "./components/setCategory/SetCategory"
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 
@@ -49,10 +50,12 @@ class App extends Component {
                 <Menu.Item key="1">
                   <NavLink to='/request' className="nav-link">请求</NavLink>
                 </Menu.Item>
-                {/* CustomerStatus */}
                 <Menu.Item key="2">
                   <NavLink to='./CustomerStatus'>客户状态</NavLink>
                 </Menu.Item>
+                  <Menu.Item key="3">
+                    <NavLink to='./SetCategory'>产品类型和话术关系维护</NavLink>
+                  </Menu.Item>
               </Menu>
             </Sider>
             <Layout>
@@ -60,6 +63,7 @@ class App extends Component {
                 <Switch>
                   <Route path='/request' component={Request} />
                   <Route path='/CustomerStatus' component={CustomerStatus} />
+                    <Route path='/SetCategory' component={SetCategory} />
                   <Redirect from='/' to='/request' />
                 </Switch>
               </Content>
